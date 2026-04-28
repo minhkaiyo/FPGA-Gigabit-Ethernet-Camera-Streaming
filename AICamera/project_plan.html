@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kế hoạch Đồ án 1 - Hệ thống Camera IoT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --card: #111827;
+            --border: #1e2d4a;
+            --text: #e8ecf4;
+            --text2: #8899b4;
+            --muted: #5a6b85;
+            --blue: #3b82f6;
+            --cyan: #06b6d4;
+            --green: #10b981;
+            --orange: #f59e0b;
+            --pink: #ec4899;
+            --purple: #8b5cf6;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(59, 130, 246, .03) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, .03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 5px 16px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e8ecf4, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text2);
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all .3s;
+        }
+
+        .card:hover {
+            border-color: rgba(59, 130, 246, .25);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, .08);
+        }
+
+        .card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .card p,
+        .card li {
+            font-size: 13px;
+            color: var(--text2);
+        }
+
+        .card ul {
+            padding-left: 18px;
+        }
+
+        .card ul li {
+            margin-bottom: 4px;
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .grid3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .tag.yes {
+            background: rgba(16, 185, 129, .12);
+            color: var(--green);
+        }
+
+        .tag.warn {
+            background: rgba(245, 158, 11, .12);
+            color: var(--orange);
+        }
+
+        .tag.no {
+            background: rgba(239, 68, 68, .12);
+            color: var(--red);
+        }
+
+        .tag.info {
+            background: rgba(59, 130, 246, .12);
+            color: var(--blue);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: rgba(59, 130, 246, .08);
+            color: var(--blue);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            font-weight: 700;
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(30, 45, 74, .5);
+            color: var(--text2);
+        }
+
+        tr:hover td {
+            background: rgba(59, 130, 246, .03);
+        }
+
+        .highlight {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .arch-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 30px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 2;
+            color: var(--cyan);
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .phase {
+            border-left: 3px solid var(--blue);
+            padding-left: 20px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .phase::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 4px;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--blue);
+        }
+
+        .phase h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .phase .week {
+            font-size: 11px;
+            color: var(--blue);
+            font-weight: 600;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .phase p,
+        .phase li {
+            font-size: 13px;
+            color: var(--text2);
+        }
+
+        .phase ul {
+            padding-left: 18px;
+        }
+
+        .risk-bar {
+            height: 6px;
+            border-radius: 3px;
+            margin-top: 6px;
+        }
+
+        .risk-low {
+            background: linear-gradient(90deg, var(--green), rgba(16, 185, 129, .3));
+            width: 30%;
+        }
+
+        .risk-med {
+            background: linear-gradient(90deg, var(--orange), rgba(245, 158, 11, .3));
+            width: 60%;
+        }
+
+        .risk-high {
+            background: linear-gradient(90deg, var(--red), rgba(239, 68, 68, .3));
+            width: 85%;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--muted);
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .cost {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--green);
+        }
+
+        .note-box {
+            background: rgba(245, 158, 11, .06);
+            border: 1px solid rgba(245, 158, 11, .2);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            font-size: 13px;
+            color: var(--orange);
+        }
+
+        .ok-box {
+            background: rgba(16, 185, 129, .06);
+            border: 1px solid rgba(16, 185, 129, .2);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            font-size: 13px;
+            color: var(--green);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- HEADER -->
+        <div style="text-align:center; margin-bottom:50px;">
+            <div class="badge">Đồ án Thiết kế 1 — ĐTVT HUST</div>
+            <h1>Hệ thống giám sát hình ảnh từ xa IoT</h1>
+            <p class="subtitle">ESP32 + OV7670 + TFT Display + Web Server — Kế hoạch chi tiết & Phân tích khả thi</p>
+        </div>
+
+        <!-- ===== 1. ĐÂY CÓ PHẢI IoT KHÔNG? ===== -->
+        <div class="section">
+            <div class="section-title"><span>✅</span> Đây có phải đồ án IoT không? <span class="line"></span></div>
+            <div class="ok-box">
+                <strong>CÓ — 100% là một dự án IoT (Internet of Things) chuẩn mực.</strong><br>
+                Dự án này thỏa mãn <strong>tất cả 5 tiêu chí</strong> của một hệ thống IoT hoàn chỉnh:
+            </div>
+            <div class="grid3">
+                <div class="card">
+                    <h3>📡 1. Sensing (Thu thập)</h3>
+                    <p>ESP32 #1 + OV7670 đóng vai trò <strong>Edge Sensor Node</strong> — thu thập dữ liệu hình ảnh từ
+                        môi trường thực.</p>
+                </div>
+                <div class="card">
+                    <h3>🌐 2. Connectivity (Kết nối)</h3>
+                    <p>Truyền dữ liệu qua <strong>WiFi</strong> — giao thức truyền thông không dây chuẩn IoT. Có thể mở
+                        rộng MQTT/HTTP.</p>
+                </div>
+                <div class="card">
+                    <h3>☁️ 3. Cloud/Server (Đám mây)</h3>
+                    <p>Web Server lưu trữ ảnh, database quản lý dữ liệu — đúng mô hình <strong>Edge → Cloud →
+                            Client</strong>.</p>
+                </div>
+                <div class="card">
+                    <h3>🖥️ 4. Processing (Xử lý)</h3>
+                    <p>Server xử lý, lưu trữ, phân phối ảnh. Có thể mở rộng thêm AI nhận diện trên server.</p>
+                </div>
+                <div class="card">
+                    <h3>🎛️ 5. Actuation (Điều khiển)</h3>
+                    <p>ESP32 #2 + TFT là <strong>Client Node</strong> — hiển thị ảnh và <strong>điều khiển từ
+                            xa</strong> camera node.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 2. KIẾN TRÚC HỆ THỐNG ===== -->
+        <div class="section">
+            <div class="section-title"><span>🏗️</span> Kiến trúc hệ thống (System Architecture) <span
+                    class="line"></span></div>
+            <div class="arch-box">
+                ┌─────────────────────┐ WiFi (HTTP POST) ┌──────────────────────┐
+                │ 📷 CAMERA NODE │ ──────────────────────────────────→ │ ☁️ WEB SERVER │
+                │ │ │ │
+                │ ESP32 #1 + OV7670 │ WiFi (HTTP GET / │ (PC / VPS / RPi) │
+                │ │ WebSocket) │ │
+                │ • Chụp ảnh liên tục│ ←──────────────────────────────── │ • Database (MySQL/ │
+                │ • Nhận lệnh điều │ Lệnh điều khiển (JSON) │ SQLite/Firebase) │
+                │ khiển từ server │ │ • REST API │
+                │ • Gửi ảnh lên │ │ • Lưu trữ ảnh │
+                │ server │ │ • Web Dashboard │
+                └─────────────────────┘ └──────────┬───────────┘
+                │
+                WiFi (HTTP GET /
+                WebSocket)
+                │
+                ▼
+                ┌──────────────────────┐
+                │ 🖥️ DISPLAY NODE │
+                │ │
+                │ ESP32 #2 + TFT 1.8" │
+                │ │
+                │ • Hiển thị ảnh nhận │
+                │ được từ server │
+                │ • Giao diện điều │
+                │ khiển (nút nhấn) │
+                │ • Gửi lệnh → Server│
+                │ → Camera Node │
+                └──────────────────────┘
+            </div>
+
+            <div class="note-box">
+                <strong>⚠️ Lưu ý về TFT 1.8":</strong> Hầu hết module TFT 1.8" (ST7735) <strong>không có cảm
+                    ứng</strong>. Nếu bạn cần điều khiển, có 2 cách:<br>
+                • <strong>Cách 1 (Rẻ):</strong> Dùng 3–4 nút nhấn vật lý bên cạnh màn hình (lên/xuống/chọn/back) → giao
+                diện menu đơn giản.<br>
+                • <strong>Cách 2:</strong> Đổi sang TFT 2.4" ILI9341 + cảm ứng XPT2046 (~70k) → có touch thật sự. Nhưng
+                thêm chi phí.<br>
+                → <strong>Khuyến nghị Cách 1</strong> để giữ chi phí thấp và vẫn đủ chức năng cho ĐA1.
+            </div>
+        </div>
+
+        <!-- ===== 3. PHÂN TÍCH KHẢ THI ===== -->
+        <div class="section">
+            <div class="section-title"><span>🔍</span> Phân tích khả thi (Feasibility Analysis) <span
+                    class="line"></span></div>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hạng mục</th>
+                            <th>Đánh giá</th>
+                            <th>Chi tiết</th>
+                            <th>Rủi ro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="highlight">OV7670 (no FIFO) + ESP32</td>
+                            <td><span class="tag warn">Trung bình</span></td>
+                            <td>Driver esp32-camera hỗ trợ OV7670. Không FIFO thì phải dùng I2S camera mode. Resolution
+                                tối đa ~QQVGA (160×120) nếu không có PSRAM.</td>
+                            <td>
+                                <div class="risk-bar risk-med"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">Truyền ảnh qua WiFi</td>
+                            <td><span class="tag yes">Khả thi</span></td>
+                            <td>QQVGA Grayscale = ~19KB/frame. Qua WiFi HTTP tốc độ ~1-3 MB/s → truyền được ~50-150
+                                frame/s lý thuyết. Thực tế: 2-5 fps.</td>
+                            <td>
+                                <div class="risk-bar risk-low"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">TFT 1.8" hiển thị ảnh</td>
+                            <td><span class="tag yes">Dễ</span></td>
+                            <td>ST7735 SPI, 160×128 pixel. Thư viện TFT_eSPI rất ổn định. Hiển thị ảnh RGB565 rất nhanh
+                                (DMA SPI).</td>
+                            <td>
+                                <div class="risk-bar risk-low"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">Web Server + Database</td>
+                            <td><span class="tag yes">Dễ</span></td>
+                            <td>Dùng Python Flask/FastAPI + SQLite hoặc Firebase. REST API nhận/trả ảnh. Bạn đã có kinh
+                                nghiệm Python.</td>
+                            <td>
+                                <div class="risk-bar risk-low"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">Điều khiển từ xa</td>
+                            <td><span class="tag yes">Khả thi</span></td>
+                            <td>Display Node gửi lệnh JSON → Server → Camera Node polling lệnh. Độ trễ ~0.5-2s (chấp
+                                nhận được).</td>
+                            <td>
+                                <div class="risk-bar risk-low"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">Resolution & chất lượng ảnh</td>
+                            <td><span class="tag warn">Hạn chế</span></td>
+                            <td>OV7670 không FIFO + ESP32 không PSRAM → QQVGA 160×120. Đủ demo nhưng không sắc nét. Nếu
+                                có PSRAM: QVGA 320×240.</td>
+                            <td>
+                                <div class="risk-bar risk-med"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="ok-box">
+                <strong>KẾT LUẬN: Dự án KHẢ THI</strong> — Rủi ro chính nằm ở việc OV7670 không FIFO có thể gây khó khăn
+                ban đầu. Nhưng driver esp32-camera đã hỗ trợ nên hoàn toàn làm được. Các phần còn lại đều có thư viện
+                tốt và bạn đã có kinh nghiệm.
+            </div>
+        </div>
+
+        <!-- ===== 4. DANH SÁCH LINH KIỆN ===== -->
+        <div class="section">
+            <div class="section-title"><span>🛒</span> Danh sách linh kiện (Bill of Materials) <span
+                    class="line"></span></div>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Linh kiện</th>
+                            <th>Số lượng</th>
+                            <th>Giá ước tính</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td class="highlight">ESP32 DevKit CH340 (WROOM-32)</td>
+                            <td>2</td>
+                            <td>~75k × 2 = 150k</td>
+                            <td><span class="tag yes">Đã có 1</span></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td class="highlight">Module OV7670 (không FIFO)</td>
+                            <td>1</td>
+                            <td>~35k</td>
+                            <td><span class="tag yes">Đã có</span></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td class="highlight">TFT 1.8" ST7735 SPI (128×160)</td>
+                            <td>1</td>
+                            <td>~45k</td>
+                            <td><span class="tag warn">Cần mua</span></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td class="highlight">Nút nhấn (tactile button)</td>
+                            <td>4</td>
+                            <td>~5k</td>
+                            <td><span class="tag warn">Cần mua</span></td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td class="highlight">Breadboard + dây jumper</td>
+                            <td>2 + 40 dây</td>
+                            <td>~30k</td>
+                            <td><span class="tag warn">Cần mua</span></td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td class="highlight">Điện trở 10kΩ (pull-up nút nhấn)</td>
+                            <td>4</td>
+                            <td>~2k</td>
+                            <td><span class="tag warn">Cần mua</span></td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td class="highlight">Cáp USB Micro-B (cấp nguồn)</td>
+                            <td>2</td>
+                            <td>~20k</td>
+                            <td><span class="tag info">Có thể có sẵn</span></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align:right; font-weight:700; color:var(--text);">TỔNG CHI PHÍ
+                                ƯỚC TÍNH:</td>
+                            <td colspan="2"><span class="cost">~170k – 290k VNĐ</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top:12px; font-size:12px; color:var(--muted);">* Giá tham khảo theo Shopee/Lazada tại
+                    thời điểm 02/2026. Nếu đã có ESP32 thì chỉ cần mua thêm ~80-120k.</p>
+            </div>
+        </div>
+
+        <!-- ===== 5. CHỨC NĂNG CHI TIẾT ===== -->
+        <div class="section">
+            <div class="section-title"><span>⚙️</span> Chức năng chi tiết từng Node <span class="line"></span></div>
+            <div class="grid2">
+                <div class="card" style="border-top:3px solid var(--cyan);">
+                    <h3>📷 Camera Node (ESP32 #1 + OV7670)</h3>
+                    <ul>
+                        <li>Khởi động camera OV7670 qua SCCB (I²C)</li>
+                        <li>Chụp ảnh liên tục (QQVGA 160×120, Grayscale hoặc RGB565)</li>
+                        <li>Kết nối WiFi đến router</li>
+                        <li>Gửi ảnh lên Web Server qua HTTP POST (Base64 hoặc binary)</li>
+                        <li>Polling lệnh điều khiển từ Server (chụp/dừng/đổi mode)</li>
+                        <li>LED status: đang chụp / đang gửi / lỗi</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-top:3px solid var(--purple);">
+                    <h3>🖥️ Display Node (ESP32 #2 + TFT 1.8")</h3>
+                    <ul>
+                        <li>Kết nối WiFi đến cùng router</li>
+                        <li>Polling ảnh mới nhất từ Web Server (HTTP GET)</li>
+                        <li>Hiển thị ảnh lên TFT ST7735 (SPI, 160×128)</li>
+                        <li>Giao diện menu điều khiển bằng 4 nút nhấn:<br>
+                            &nbsp;&nbsp;[▲] Chọn lên &nbsp; [▼] Chọn xuống<br>
+                            &nbsp;&nbsp;[OK] Xác nhận &nbsp; [◀] Quay lại</li>
+                        <li>Chức năng: Chụp ảnh / Xem gallery / Đổi chế độ / Cài đặt WiFi</li>
+                        <li>Hiển thị timestamp, trạng thái kết nối</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-top:3px solid var(--green); grid-column:1/-1;">
+                    <h3>☁️ Web Server + Database</h3>
+                    <div class="grid2" style="margin-top:12px;">
+                        <div>
+                            <p style="color:var(--text); font-weight:600; margin-bottom:8px;">Backend (Python
+                                Flask/FastAPI)</p>
+                            <ul>
+                                <li><code>POST /api/upload</code> — Camera Node gửi ảnh lên</li>
+                                <li><code>GET /api/latest</code> — Display Node lấy ảnh mới nhất</li>
+                                <li><code>GET /api/gallery</code> — Lấy danh sách ảnh đã chụp</li>
+                                <li><code>POST /api/command</code> — Display Node gửi lệnh điều khiển</li>
+                                <li><code>GET /api/command</code> — Camera Node polling lệnh mới</li>
+                                <li>Lưu ảnh lên thư mục server + metadata vào SQLite</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p style="color:var(--text); font-weight:600; margin-bottom:8px;">Frontend (Web Dashboard —
+                                bonus)</p>
+                            <ul>
+                                <li>Trang web xem ảnh trực tuyến (HTML/CSS/JS)</li>
+                                <li>Gallery ảnh đã chụp với timestamp</li>
+                                <li>Nút điều khiển camera từ xa</li>
+                                <li>Trạng thái kết nối real-time</li>
+                                <li>Responsive (xem được trên điện thoại)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 6. GIAO THỨC TRUYỀN THÔNG ===== -->
+        <div class="section">
+            <div class="section-title"><span>📡</span> Giao thức truyền thông <span class="line"></span></div>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kết nối</th>
+                            <th>Giao thức</th>
+                            <th>Dữ liệu</th>
+                            <th>Tần suất</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="highlight">OV7670 → ESP32 #1</td>
+                            <td>DVP 8-bit parallel (I2S Camera Mode)</td>
+                            <td>Raw pixel data</td>
+                            <td>Liên tục (2-5 fps)</td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">ESP32 #1 → Server</td>
+                            <td>HTTP POST (WiFi, JSON + Base64)</td>
+                            <td>Ảnh JPEG/Raw ~5-20 KB</td>
+                            <td>Mỗi khi chụp xong 1 frame</td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">Server → ESP32 #2</td>
+                            <td>HTTP GET (WiFi, binary)</td>
+                            <td>Ảnh đã xử lý ~5-20 KB</td>
+                            <td>Polling mỗi 500ms</td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">ESP32 #2 → TFT</td>
+                            <td>SPI (40MHz)</td>
+                            <td>RGB565 pixel buffer</td>
+                            <td>Mỗi khi nhận ảnh mới</td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">ESP32 #2 → Server</td>
+                            <td>HTTP POST (JSON)</td>
+                            <td>Lệnh điều khiển</td>
+                            <td>Khi người dùng nhấn nút</td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">Server → ESP32 #1</td>
+                            <td>HTTP GET (JSON)</td>
+                            <td>Lệnh từ Display Node</td>
+                            <td>Polling mỗi 1s</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== 7. KẾ HOẠCH THỰC HIỆN ===== -->
+        <div class="section">
+            <div class="section-title"><span>📅</span> Kế hoạch thực hiện theo tuần (8 tuần) <span class="line"></span>
+            </div>
+
+            <div class="phase">
+                <div class="week">Tuần 1 — Chuẩn bị & Nghiên cứu</div>
+                <h3>🔧 Setup môi trường + Nghiên cứu datasheet</h3>
+                <ul>
+                    <li>Cài Arduino IDE + ESP32 Board Manager (hoặc PlatformIO)</li>
+                    <li>Đọc datasheet OV7670 (register map, timing diagram, SCCB protocol)</li>
+                    <li>Đọc ESP32 Technical Reference (I2S Camera Mode, GPIO matrix)</li>
+                    <li>Flash chương trình LED Blink lên ESP32 để xác nhận board hoạt động</li>
+                    <li>Xác nhận ESP32 là WROOM hay WROVER (kiểm tra PSRAM)</li>
+                    <li><strong>Deliverable:</strong> ESP32 flash được code, hiểu pinout OV7670</li>
+                </ul>
+            </div>
+
+            <div class="phase">
+                <div class="week">Tuần 2 — Nối dây & Test Camera (QUAN TRỌNG NHẤT)</div>
+                <h3>📷 Kết nối OV7670 ↔ ESP32 #1, chụp frame ảnh đầu tiên</h3>
+                <ul>
+                    <li>Nối dây OV7670 → ESP32 theo pinout (16 dây: D0-D7, PCLK, VSYNC, HREF, XCLK, SDA, SCL, RESET,
+                        PWDN)</li>
+                    <li>Cài thư viện esp32-camera, cấu hình cho OV7670</li>
+                    <li>Flash firmware test: chụp 1 frame QQVGA (160×120) Grayscale</li>
+                    <li>Gửi ảnh qua Serial (hex dump) hoặc WiFi HTTP → xem trên PC</li>
+                    <li>Debug nếu ảnh bị lỗi (sai màu, sọc, trắng đen → thường do timing hoặc sai register init)</li>
+                    <li><strong>Deliverable:</strong> Chụp được 1 frame ảnh rõ ràng từ OV7670 ✅</li>
+                </ul>
+            </div>
+
+            <div class="phase">
+                <div class="week">Tuần 3 — WiFi + Gửi ảnh lên Server</div>
+                <h3>🌐 Kết nối WiFi, dựng Server, truyền ảnh</h3>
+                <ul>
+                    <li>Viết firmware ESP32 #1: kết nối WiFi → chụp ảnh → HTTP POST lên server</li>
+                    <li>Dựng Web Server đơn giản bằng Python Flask:<br>
+                        &nbsp;&nbsp;• <code>POST /api/upload</code> nhận ảnh binary, lưu file + SQLite<br>
+                        &nbsp;&nbsp;• <code>GET /api/latest</code> trả ảnh mới nhất</li>
+                    <li>Test: ESP32 chụp → gửi → server lưu → mở trình duyệt xem ảnh</li>
+                    <li><strong>Deliverable:</strong> Ảnh từ camera xuất hiện trên web browser ✅</li>
+                </ul>
+            </div>
+
+            <div class="phase">
+                <div class="week">Tuần 4 — Display Node (ESP32 #2 + TFT)</div>
+                <h3>🖥️ Kết nối TFT 1.8", hiển thị ảnh</h3>
+                <ul>
+                    <li>Nối TFT ST7735 → ESP32 #2 (6 dây SPI: SCK, MOSI, CS, DC, RST, BL)</li>
+                    <li>Cài thư viện TFT_eSPI, test hiển thị text + hình cơ bản</li>
+                    <li>Viết firmware: ESP32 #2 kết nối WiFi → GET ảnh từ server → decode → hiển thị TFT</li>
+                    <li>Nối 4 nút nhấn, viết code đọc nút (debounce)</li>
+                    <li><strong>Deliverable:</strong> TFT hiển thị được ảnh nhận từ server ✅</li>
+                </ul>
+            </div>
+
+            <div class="phase">
+                <div class="week">Tuần 5 — Điều khiển từ xa</div>
+                <h3>🎛️ Giao diện menu + Gửi lệnh điều khiển</h3>
+                <ul>
+                    <li>Thiết kế giao diện menu trên TFT (dùng nút nhấn điều hướng):<br>
+                        &nbsp;&nbsp;• Menu chính: [📸 Chụp ảnh] [📁 Gallery] [⚙ Cài đặt]<br>
+                        &nbsp;&nbsp;• Gallery: xem lại ảnh đã chụp (lướt trái/phải)</li>
+                    <li>API điều khiển: Display Node → POST /api/command → Server lưu → Camera Node polling GET
+                        /api/command</li>
+                    <li>Lệnh hỗ trợ: capture (chụp), stream_on/off, set_resolution, restart</li>
+                    <li><strong>Deliverable:</strong> Nhấn nút trên TFT → Camera chụp ảnh → ảnh hiện trên TFT ✅</li>
+                </ul>
+            </div>
+
+            <div class="phase">
+                <div class="week">Tuần 6 — Web Dashboard + Database</div>
+                <h3>☁️ Hoàn thiện Backend + Frontend web</h3>
+                <ul>
+                    <li>Hoàn thiện database (SQLite): bảng images (id, filename, timestamp, size, source)</li>
+                    <li>Viết web dashboard (HTML/CSS/JS): gallery ảnh, xem ảnh real-time, nút điều khiển</li>
+                    <li>Thêm trang thống kê: số ảnh đã chụp, uptime camera, trạng thái kết nối</li>
+                    <li>Test toàn bộ hệ thống end-to-end: Camera → Server → TFT + Web</li>
+                    <li><strong>Deliverable:</strong> Web dashboard hoạt động, database lưu trữ ổn định ✅</li>
+                </ul>
+            </div>
+
+            <div class="phase">
+                <div class="week">Tuần 7 — Tối ưu & Kiểm thử</div>
+                <h3>🔬 Đo đạc, tối ưu, xử lý lỗi</h3>
+                <ul>
+                    <li>Đo FPS thực tế, latency truyền ảnh, độ ổn định WiFi</li>
+                    <li>Tối ưu: nén ảnh (JPEG trên server), giảm polling interval, retry khi mất kết nối</li>
+                    <li>Xử lý edge case: mất WiFi, server down, camera treo → auto-reconnect</li>
+                    <li>Test stress: chạy liên tục 1-2 giờ, kiểm tra memory leak</li>
+                    <li><strong>Deliverable:</strong> Hệ thống chạy ổn định, có số liệu đo đạc ✅</li>
+                </ul>
+            </div>
+
+            <div class="phase">
+                <div class="week">Tuần 8 — Viết báo cáo & Demo</div>
+                <h3>📝 Hoàn thiện báo cáo + Chuẩn bị bảo vệ</h3>
+                <ul>
+                    <li>Viết báo cáo đồ án: Tổng quan, Cơ sở lý thuyết, Thiết kế hệ thống, Kết quả, Kết luận</li>
+                    <li>Vẽ schematic bằng KiCad / Fritzing (cho phần trình bày)</li>
+                    <li>Chụp ảnh/quay video demo hệ thống hoạt động</li>
+                    <li>Chuẩn bị slide PowerPoint bảo vệ</li>
+                    <li>Chạy demo cuối cùng, fix bug nếu còn</li>
+                    <li><strong>Deliverable:</strong> Báo cáo hoàn chỉnh + Demo chạy mượt ✅</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ===== 8. RỦI RO & PHƯƠNG ÁN DỰ PHÒNG ===== -->
+        <div class="section">
+            <div class="section-title"><span>⚠️</span> Rủi ro & Phương án dự phòng <span class="line"></span></div>
+            <div class="grid2">
+                <div class="card">
+                    <h3>🔴 Rủi ro 1: OV7670 không chụp được ảnh</h3>
+                    <p><strong>Nguyên nhân:</strong> Sai dây, sai register init, timing không khớp.</p>
+                    <p><strong>Dự phòng:</strong> Thử dùng code Arduino cơ bản (không qua esp32-camera) để đọc raw data
+                        bằng I2S trực tiếp. Nếu vẫn lỗi → mua module ESP32-CAM (~75k, đã tích hợp OV2640, chắc chắn hoạt
+                        động) thay thế Camera Node.</p>
+                </div>
+                <div class="card">
+                    <h3>🟡 Rủi ro 2: Ảnh chất lượng thấp, nhiều nhiễu</h3>
+                    <p><strong>Nguyên nhân:</strong> OV7670 không FIFO → mất pixel khi I2S overrun.</p>
+                    <p><strong>Dự phòng:</strong> Giảm resolution xuống QQVGA (160×120), dùng Grayscale thay RGB. Đảm
+                        bảo XCLK cho OV7670 đủ 20MHz (dùng LEDC PWM).</p>
+                </div>
+                <div class="card">
+                    <h3>🟡 Rủi ro 3: Truyền ảnh chậm, lag nhiều</h3>
+                    <p><strong>Nguyên nhân:</strong> HTTP overhead, WiFi congestion.</p>
+                    <p><strong>Dự phòng:</strong> Chuyển sang UDP socket (nhanh hơn HTTP). Hoặc nén ảnh trên server
+                        trước khi gửi cho Display Node. Giảm tần suất chụp.</p>
+                </div>
+                <div class="card">
+                    <h3>🟢 Rủi ro 4: Hết GPIO cho TFT + nút nhấn</h3>
+                    <p><strong>Nguyên nhân:</strong> ESP32 #2 cần GPIO cho SPI (TFT) + 4 nút.</p>
+                    <p><strong>Dự phòng:</strong> TFT dùng 5 chân SPI + 4 nút = 9 GPIO. ESP32 DevKit có ~25 GPIO khả
+                        dụng → dư thừa, không phải vấn đề.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 9. ĐỀ TÀI CHÍNH THỨC ===== -->
+        <div class="section">
+            <div class="section-title"><span>🎓</span> Tên đề tài chính thức (gợi ý) <span class="line"></span></div>
+            <div class="card" style="text-align:center; padding:30px;">
+                <p
+                    style="font-size:12px; color:var(--blue); font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px;">
+                    Đề tài Đồ án Thiết kế 1</p>
+                <h3 style="font-size:20px; margin-bottom:12px;">"Thiết kế và xây dựng hệ thống giám sát hình ảnh từ
+                    xa<br>sử dụng vi điều khiển ESP32 và giao thức IoT"</h3>
+                <p>Tên tiếng Anh: <em>"Design and Implementation of a Remote Image Monitoring System<br>Using ESP32
+                        Microcontroller and IoT Protocols"</em></p>
+                <div style="margin-top:16px;">
+                    <span class="tag info">ESP32</span>
+                    <span class="tag info">OV7670</span>
+                    <span class="tag info">WiFi</span>
+                    <span class="tag info">IoT</span>
+                    <span class="tag info">HTTP/REST API</span>
+                    <span class="tag info">TFT Display</span>
+                    <span class="tag info">Web Server</span>
+                    <span class="tag info">Database</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>📘 Đồ án Thiết kế 1 — Điện tử Viễn thông — Đại học Bách khoa Hà Nội (HUST)</p>
+            <p style="margin-top:6px;">Ngày tạo kế hoạch: 25/02/2026 | Dự kiến: 8 tuần thực hiện</p>
+        </div>
+    </div>
+</body>
+
+</html>

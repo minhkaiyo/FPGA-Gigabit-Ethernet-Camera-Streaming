@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sơ đồ khối - Hệ thống nhận diện vật thể nhúng ESP32-S3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-card: #111827;
+            --bg-card-hover: #1a2238;
+            --border-color: #1e2d4a;
+            --text-primary: #e8ecf4;
+            --text-secondary: #8899b4;
+            --text-muted: #5a6b85;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-pink: #ec4899;
+            --accent-purple: #8b5cf6;
+            --accent-red: #ef4444;
+            --glow-blue: rgba(59, 130, 246, 0.15);
+            --glow-cyan: rgba(6, 182, 212, 0.15);
+            --glow-green: rgba(16, 185, 129, 0.15);
+            --glow-orange: rgba(245, 158, 11, 0.15);
+            --glow-pink: rgba(236, 72, 153, 0.15);
+            --glow-purple: rgba(139, 92, 246, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background grid pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 6px 18px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e8ecf4, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.3;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ===== DIAGRAM SECTION ===== */
+        .diagram-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .diagram-title .icon {
+            font-size: 24px;
+        }
+
+        .diagram-title .line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border-color), transparent);
+        }
+
+        /* ===== BLOCK DIAGRAM ===== */
+        .block-diagram {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin-bottom: 50px;
+        }
+
+        .diagram-row {
+            display: flex;
+            align-items: stretch;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            min-width: 220px;
+            max-width: 320px;
+            flex: 1;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .block:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .block.camera::before {
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+        }
+
+        .block.camera:hover {
+            box-shadow: 0 8px 30px var(--glow-cyan);
+        }
+
+        .block.mcu::before {
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+        }
+
+        .block.mcu:hover {
+            box-shadow: 0 8px 30px var(--glow-blue);
+        }
+
+        .block.processing::before {
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+        }
+
+        .block.processing:hover {
+            box-shadow: 0 8px 30px var(--glow-green);
+        }
+
+        .block.comm::before {
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-pink));
+        }
+
+        .block.comm:hover {
+            box-shadow: 0 8px 30px var(--glow-orange);
+        }
+
+        .block.power::before {
+            background: linear-gradient(90deg, var(--accent-red), var(--accent-orange));
+        }
+
+        .block.power:hover {
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.15);
+        }
+
+        .block.ui::before {
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
+        }
+
+        .block.ui:hover {
+            box-shadow: 0 8px 30px var(--glow-purple);
+        }
+
+        .block.output::before {
+            background: linear-gradient(90deg, var(--accent-pink), var(--accent-purple));
+        }
+
+        .block.output:hover {
+            box-shadow: 0 8px 30px var(--glow-pink);
+        }
+
+        .block-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .block h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .block .subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .block .specs {
+            list-style: none;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .block .specs li::before {
+            content: '▸ ';
+            color: var(--accent-blue);
+            font-weight: 700;
+        }
+
+        /* ===== FLOW ARROWS ===== */
+        .flow-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+        }
+
+        .arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .arrow .line-v {
+            width: 2px;
+            height: 30px;
+            background: linear-gradient(180deg, var(--accent-blue), var(--accent-cyan));
+            border-radius: 2px;
+        }
+
+        .arrow .head {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid var(--accent-cyan);
+        }
+
+        .arrow-label {
+            font-size: 11px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: rgba(6, 182, 212, 0.1);
+            padding: 3px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .arrow-h {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .arrow-h .line-h {
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+        }
+
+        .arrow-h .head-r {
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 8px solid var(--accent-cyan);
+        }
+
+        /* ===== LARGE FLOW DIAGRAM ===== */
+        .main-flow {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px 30px;
+            margin-bottom: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-flow::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.05), transparent 70%);
+            pointer-events: none;
+        }
+
+        .flow-pipeline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pipeline-step {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 12px;
+            padding: 16px 18px;
+            text-align: center;
+            min-width: 130px;
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-step:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .pipeline-step .step-num {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .pipeline-step .step-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .pipeline-step .step-detail {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .pipeline-arrow {
+            color: var(--accent-cyan);
+            font-size: 20px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ===== DATASHEET TABLE ===== */
+        .datasheet-section {
+            margin-bottom: 50px;
+        }
+
+        .ds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 20px;
+        }
+
+        .ds-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .ds-card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 20px var(--glow-blue);
+        }
+
+        .ds-card .ds-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .ds-card .ds-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .ds-card .ds-icon.blue {
+            background: var(--glow-blue);
+        }
+
+        .ds-card .ds-icon.cyan {
+            background: var(--glow-cyan);
+        }
+
+        .ds-card .ds-icon.green {
+            background: var(--glow-green);
+        }
+
+        .ds-card .ds-icon.orange {
+            background: var(--glow-orange);
+        }
+
+        .ds-card .ds-icon.purple {
+            background: var(--glow-purple);
+        }
+
+        .ds-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .ds-card .ds-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .ds-card .ds-body {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .ds-card .ds-specs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .ds-card .spec-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
+        .ds-card .spec-item .spec-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .ds-card .spec-item .spec-value {
+            font-size: 13px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .ds-card .ds-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .ds-card .ds-links a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            text-decoration: none;
+            padding: 6px 14px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .ds-card .ds-links a:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        /* ===== GPIO TABLE ===== */
+        .gpio-section {
+            margin-bottom: 50px;
+        }
+
+        .gpio-table-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .gpio-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .gpio-table thead {
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .gpio-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .gpio-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(30, 45, 74, 0.5);
+            color: var(--text-secondary);
+        }
+
+        .gpio-table tr:hover td {
+            background: rgba(59, 130, 246, 0.03);
+        }
+
+        .gpio-table .pin-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .gpio-table .protocol-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .protocol-badge.dvp {
+            background: var(--glow-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .protocol-badge.i2c {
+            background: var(--glow-green);
+            color: var(--accent-green);
+        }
+
+        .protocol-badge.clk {
+            background: var(--glow-orange);
+            color: var(--accent-orange);
+        }
+
+        .protocol-badge.pwr {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--accent-red);
+        }
+
+        .protocol-badge.ctrl {
+            background: var(--glow-purple);
+            color: var(--accent-purple);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .flow-pipeline {
+                flex-direction: column;
+            }
+
+            .pipeline-arrow {
+                transform: rotate(90deg);
+            }
+
+            .ds-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .diagram-row {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .block {
+                max-width: 100%;
+                min-width: auto;
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .block,
+        .ds-card,
+        .pipeline-step,
+        .gpio-table-wrapper {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .block:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .block:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .block:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .block:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+
+        /* ===== TOOLTIP ===== */
+        .tooltip {
+            position: fixed;
+            background: #1a2238;
+            border: 1px solid var(--accent-blue);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: var(--text-primary);
+            max-width: 280px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="badge">Đồ án Thiết kế 1 — ĐTVT HUST</div>
+            <h1>Hệ thống nhận diện vật thể nhúng<br>trên nền tảng ESP32-S3</h1>
+            <p>Sơ đồ khối hệ thống sử dụng vi xử lý ESP32-S3 kết hợp module camera OV2640, thực hiện thu thập ảnh, xử lý
+                ảnh và nhận diện vật thể trên chip, truyền kết quả qua WiFi.</p>
+        </div>
+
+        <!-- ===== SECTION 1: SƠ ĐỒ KHỐI PHẦN CỨNG ===== -->
+        <div class="diagram-title">
+            <span class="icon">🔧</span>
+            <span>Sơ đồ khối phần cứng (Hardware Block Diagram)</span>
+            <span class="line"></span>
+        </div>
+
+        <div class="block-diagram">
+            <!-- Row 1: Input -->
+            <div class="diagram-row">
+                <div class="block camera"
+                    data-tooltip="Cảm biến ảnh CMOS 2MP, hỗ trợ SXGA/SVGA/QVGA. Giao tiếp DVP 8-bit song song. Có encoder JPEG tích hợp trong chip.">
+                    <div class="block-icon">📷</div>
+                    <h3>Module Camera OV2640</h3>
+                    <div class="subtitle">Khối thu thập ảnh</div>
+                    <ul class="specs">
+                        <li>CMOS 2MP (1600×1200)</li>
+                        <li>Output: JPEG / YUV422 / RGB565</li>
+                        <li>Giao tiếp: DVP 8-bit parallel</li>
+                        <li>Cấu hình: SCCB (I²C-like)</li>
+                        <li>AVDD: 2.5–3.0V, DVDD: 1.3V</li>
+                    </ul>
+                </div>
+
+                <div class="block mcu"
+                    data-tooltip="Vi xử lý chính của hệ thống. Dual-core LX7 chạy 240MHz, hỗ trợ WiFi + BLE5, có peripheral LCD_CAM chuyên dụng cho camera DVP. PSRAM 8MB qua Octal SPI giúp đệm frame ảnh.">
+                    <div class="block-icon">🧠</div>
+                    <h3>ESP32-S3-WROOM-1</h3>
+                    <div class="subtitle">Vi xử lý trung tâm</div>
+                    <ul class="specs">
+                        <li>Xtensa LX7 Dual-core @ 240MHz</li>
+                        <li>512KB SRAM + 8MB PSRAM (OSPI)</li>
+                        <li>16MB Flash (Quad SPI)</li>
+                        <li>WiFi 802.11 b/g/n + BLE 5.0</li>
+                        <li>LCD_CAM peripheral (DVP native)</li>
+                        <li>45 GPIO linh hoạt</li>
+                    </ul>
+                </div>
+
+                <div class="block power"
+                    data-tooltip="Mạch nguồn cấp cho toàn hệ thống. USB 5V → AMS1117-3.3 tạo 3.3V cho MCU và IO camera. ME6211 hoặc divider tạo 1.3V cho core analog camera OV2640.">
+                    <div class="block-icon">⚡</div>
+                    <h3>Khối nguồn (Power Supply)</h3>
+                    <div class="subtitle">Cấp nguồn hệ thống</div>
+                    <ul class="specs">
+                        <li>Input: USB 5V (Type-C / Micro-B)</li>
+                        <li>AMS1117-3.3 → 3.3V / 1A (MCU + IO)</li>
+                        <li>ME6211 → 1.3V (DVDD OV2640)</li>
+                        <li>Tụ lọc: 10µF + 100nF decoupling</li>
+                        <li>LED chỉ thị nguồn</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Flow arrows -->
+            <div class="flow-row">
+                <div class="arrow">
+                    <div class="line-v"></div>
+                    <div class="head"></div>
+                </div>
+                <div class="arrow-label">DVP 8-bit + SCCB (I²C) + XCLK</div>
+                <div class="arrow">
+                    <div class="line-v"></div>
+                    <div class="head"></div>
+                </div>
+            </div>
+
+            <!-- Row 2: Processing -->
+            <div class="diagram-row">
+                <div class="block processing"
+                    data-tooltip="Chuyển đổi ảnh RGB→Grayscale, áp dụng GaussianBlur, Adaptive Threshold, và các phép toán Morphology (Closing/Opening) để tách vật thể khỏi nền — tương tự code bạn đã viết trong AICamera.">
+                    <div class="block-icon">🖼️</div>
+                    <h3>Tiền xử lý ảnh</h3>
+                    <div class="subtitle">Image Preprocessing</div>
+                    <ul class="specs">
+                        <li>RGB → Grayscale conversion</li>
+                        <li>Gaussian Blur (giảm nhiễu)</li>
+                        <li>Adaptive Threshold (tách nền)</li>
+                        <li>Morphology (Close + Open)</li>
+                        <li>Contour detection (vật thể chính)</li>
+                    </ul>
+                </div>
+
+                <div class="block processing"
+                    data-tooltip="Trích xuất các đặc trưng hand-crafted từ vùng ảnh đã tách nền. Tính toán trực tiếp trên ESP32-S3 (phiên bản tối giản so với Python, dùng integer arithmetic nếu cần).">
+                    <div class="block-icon">🔬</div>
+                    <h3>Trích xuất đặc trưng</h3>
+                    <div class="subtitle">Feature Extraction</div>
+                    <ul class="specs">
+                        <li>HSV Color Histogram (24 bins)</li>
+                        <li>LBP Texture (26 bins)</li>
+                        <li>Hu Moments - Shape (7 values)</li>
+                        <li>GLCM Haralick (6 values)</li>
+                        <li>Tổng: 63 đặc trưng / frame</li>
+                    </ul>
+                </div>
+
+                <div class="block processing"
+                    data-tooltip="So sánh vector 63 đặc trưng của ảnh mới với cơ sở dữ liệu đã lưu trên Flash. Dùng khoảng cách Euclidean (hoặc nâng cấp: KNN với k=3) để phân loại vật thể.">
+                    <div class="block-icon">🤖</div>
+                    <h3>Phân loại & nhận diện</h3>
+                    <div class="subtitle">Classification</div>
+                    <ul class="specs">
+                        <li>Nearest Centroid / KNN (k=3)</li>
+                        <li>Euclidean Distance matching</li>
+                        <li>Database lưu trên Flash (SPIFFS)</li>
+                        <li>Kết quả: tên vật thể + confidence</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Flow arrows -->
+            <div class="flow-row">
+                <div class="arrow">
+                    <div class="line-v"></div>
+                    <div class="head"></div>
+                </div>
+                <div class="arrow-label">Kết quả nhận diện + Ảnh</div>
+                <div class="arrow">
+                    <div class="line-v"></div>
+                    <div class="head"></div>
+                </div>
+            </div>
+
+            <!-- Row 3: Output -->
+            <div class="diagram-row">
+                <div class="block comm"
+                    data-tooltip="Truyền dữ liệu qua module WiFi tích hợp sẵn trong ESP32-S3. Hỗ trợ HTTP Server (hiển thị web), WebSocket (stream ảnh real-time), MQTT (IoT platform).">
+                    <div class="block-icon">📡</div>
+                    <h3>Truyền thông WiFi</h3>
+                    <div class="subtitle">Wireless Communication</div>
+                    <ul class="specs">
+                        <li>WiFi 802.11 b/g/n (2.4GHz)</li>
+                        <li>HTTP Web Server (hiển thị kết quả)</li>
+                        <li>WebSocket stream ảnh real-time</li>
+                        <li>MQTT publish kết quả (IoT)</li>
+                        <li>Antenna PCB tích hợp hoặc U.FL</li>
+                    </ul>
+                </div>
+
+                <div class="block ui"
+                    data-tooltip="Các phần tử giao tiếp người dùng trực tiếp trên mạch: nút nhấn chon chế độ, LED RGB hiển thị trạng thái, màn hình OLED nhỏ (nếu cần hiển thị tên vật thể).">
+                    <div class="block-icon">🎛️</div>
+                    <h3>Giao diện người dùng</h3>
+                    <div class="subtitle">User Interface (on-board)</div>
+                    <ul class="specs">
+                        <li>Nút nhấn: Chụp / Mode / Reset</li>
+                        <li>LED RGB: trạng thái hệ thống</li>
+                        <li>OLED 0.96" I²C (tùy chọn)</li>
+                        <li>Buzzer báo kết quả (tùy chọn)</li>
+                    </ul>
+                </div>
+
+                <div class="block output"
+                    data-tooltip="Giao diện web dashboard chạy trên trình duyệt (PC/Điện thoại), nhận ảnh stream và kết quả nhận diện qua WiFi từ ESP32-S3. Viết bằng HTML/JS, host trên chính ESP32.">
+                    <div class="block-icon">🖥️</div>
+                    <h3>Web Dashboard</h3>
+                    <div class="subtitle">Remote Monitoring</div>
+                    <ul class="specs">
+                        <li>HTML/CSS/JS host trên ESP32-S3</li>
+                        <li>Hiển thị ảnh camera real-time</li>
+                        <li>Hiển thị kết quả nhận diện</li>
+                        <li>Nút điều khiển từ xa</li>
+                        <li>Truy cập qua IP local</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 2: LUỒNG XỬ LÝ (PIPELINE) ===== -->
+        <div class="diagram-title">
+            <span class="icon">⚙️</span>
+            <span>Luồng xử lý dữ liệu (Data Processing Pipeline)</span>
+            <span class="line"></span>
+        </div>
+
+        <div class="main-flow">
+            <div class="flow-pipeline">
+                <div class="pipeline-step">
+                    <div class="step-num">STEP 1</div>
+                    <div class="step-name">Camera Capture</div>
+                    <div class="step-detail">OV2640 → DVP → PSRAM buffer (QVGA 320×240)</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">
+                    <div class="step-num">STEP 2</div>
+                    <div class="step-name">Preprocessing</div>
+                    <div class="step-detail">RGB→Gray, Blur, Adaptive Threshold, Morphology</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">
+                    <div class="step-num">STEP 3</div>
+                    <div class="step-name">Segmentation</div>
+                    <div class="step-detail">Contour detection, Mask generation, Object isolation</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">
+                    <div class="step-num">STEP 4</div>
+                    <div class="step-name">Feature Extract</div>
+                    <div class="step-detail">HSV(24) + LBP(26) + Hu(7) + GLCM(6) = 63 features</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">
+                    <div class="step-num">STEP 5</div>
+                    <div class="step-name">Classification</div>
+                    <div class="step-detail">KNN / Euclidean distance → Label + Confidence</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">
+                    <div class="step-num">STEP 6</div>
+                    <div class="step-name">Output</div>
+                    <div class="step-detail">WiFi → Web Dashboard + OLED display + LED</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 3: GPIO MAPPING ===== -->
+        <div class="diagram-title">
+            <span class="icon">🔌</span>
+            <span>Bảng kết nối GPIO (ESP32-S3 ↔ OV2640)</span>
+            <span class="line"></span>
+        </div>
+
+        <div class="gpio-section">
+            <div class="gpio-table-wrapper">
+                <table class="gpio-table">
+                    <thead>
+                        <tr>
+                            <th>Tín hiệu</th>
+                            <th>GPIO ESP32-S3</th>
+                            <th>Chân OV2640</th>
+                            <th>Giao thức</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="pin-name">D0</td>
+                            <td>GPIO11</td>
+                            <td>Y2</td>
+                            <td><span class="protocol-badge dvp">DVP</span></td>
+                            <td>Data bit 0 (LSB)</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">D1</td>
+                            <td>GPIO9</td>
+                            <td>Y3</td>
+                            <td><span class="protocol-badge dvp">DVP</span></td>
+                            <td>Data bit 1</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">D2</td>
+                            <td>GPIO8</td>
+                            <td>Y4</td>
+                            <td><span class="protocol-badge dvp">DVP</span></td>
+                            <td>Data bit 2</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">D3</td>
+                            <td>GPIO10</td>
+                            <td>Y5</td>
+                            <td><span class="protocol-badge dvp">DVP</span></td>
+                            <td>Data bit 3</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">D4</td>
+                            <td>GPIO12</td>
+                            <td>Y6</td>
+                            <td><span class="protocol-badge dvp">DVP</span></td>
+                            <td>Data bit 4</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">D5</td>
+                            <td>GPIO18</td>
+                            <td>Y7</td>
+                            <td><span class="protocol-badge dvp">DVP</span></td>
+                            <td>Data bit 5</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">D6</td>
+                            <td>GPIO17</td>
+                            <td>Y8</td>
+                            <td><span class="protocol-badge dvp">DVP</span></td>
+                            <td>Data bit 6</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">D7</td>
+                            <td>GPIO16</td>
+                            <td>Y9</td>
+                            <td><span class="protocol-badge dvp">DVP</span></td>
+                            <td>Data bit 7 (MSB)</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">PCLK</td>
+                            <td>GPIO13</td>
+                            <td>PCLK</td>
+                            <td><span class="protocol-badge clk">CLK</span></td>
+                            <td>Pixel Clock (camera → MCU)</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">VSYNC</td>
+                            <td>GPIO6</td>
+                            <td>VS</td>
+                            <td><span class="protocol-badge ctrl">CTRL</span></td>
+                            <td>Vertical Sync (frame start)</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">HREF</td>
+                            <td>GPIO7</td>
+                            <td>HS</td>
+                            <td><span class="protocol-badge ctrl">CTRL</span></td>
+                            <td>Horizontal Reference (line valid)</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">XCLK</td>
+                            <td>GPIO15</td>
+                            <td>XCLK</td>
+                            <td><span class="protocol-badge clk">CLK</span></td>
+                            <td>Master Clock (MCU → camera, 20MHz)</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">SIOD (SDA)</td>
+                            <td>GPIO4</td>
+                            <td>SDA</td>
+                            <td><span class="protocol-badge i2c">I²C</span></td>
+                            <td>SCCB Data (cấu hình camera)</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">SIOC (SCL)</td>
+                            <td>GPIO5</td>
+                            <td>SCL</td>
+                            <td><span class="protocol-badge i2c">I²C</span></td>
+                            <td>SCCB Clock (cấu hình camera)</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">RESET</td>
+                            <td>GPIO48</td>
+                            <td>RET</td>
+                            <td><span class="protocol-badge ctrl">CTRL</span></td>
+                            <td>Hardware Reset camera (active LOW)</td>
+                        </tr>
+                        <tr>
+                            <td class="pin-name">PWDN</td>
+                            <td>GPIO47</td>
+                            <td>PWDN</td>
+                            <td><span class="protocol-badge pwr">PWR</span></td>
+                            <td>Power Down (active HIGH)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 4: DATASHEET & TÀI LIỆU ===== -->
+        <div class="diagram-title">
+            <span class="icon">📚</span>
+            <span>Tài liệu & Datasheet tham khảo</span>
+            <span class="line"></span>
+        </div>
+
+        <div class="datasheet-section">
+            <div class="ds-grid">
+                <!-- ESP32-S3 SoC -->
+                <div class="ds-card">
+                    <div class="ds-header">
+                        <div class="ds-icon blue">🧠</div>
+                        <div>
+                            <h3>ESP32-S3 SoC Datasheet</h3>
+                            <div class="ds-sub">Espressif Systems — Chip vi xử lý chính</div>
+                        </div>
+                    </div>
+                    <div class="ds-body">
+                        Chi tiết đầy đủ về kiến trúc Xtensa LX7, bộ nhớ, peripheral map, LCD_CAM interface, WiFi/BLE
+                        subsystem, tiêu thụ điện năng và điều kiện hoạt động.
+                    </div>
+                    <div class="ds-specs">
+                        <div class="spec-item">
+                            <div class="spec-label">CPU</div>
+                            <div class="spec-value">Dual LX7 @ 240MHz</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">SRAM</div>
+                            <div class="spec-value">512 KB</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">WiFi</div>
+                            <div class="spec-value">802.11 b/g/n</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Bluetooth</div>
+                            <div class="spec-value">BLE 5.0 + Mesh</div>
+                        </div>
+                    </div>
+                    <div class="ds-links">
+                        <a href="https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf"
+                            target="_blank">📄 Datasheet (PDF)</a>
+                        <a href="https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/" target="_blank">📖
+                            ESP-IDF Docs</a>
+                        <a href="https://www.espressif.com/sites/default/files/documentation/esp32-s3_technical_reference_manual_en.pdf"
+                            target="_blank">🔧 Technical Ref</a>
+                    </div>
+                </div>
+
+                <!-- ESP32-S3-WROOM Module -->
+                <div class="ds-card">
+                    <div class="ds-header">
+                        <div class="ds-icon purple">📦</div>
+                        <div>
+                            <h3>ESP32-S3-WROOM-1 Module</h3>
+                            <div class="ds-sub">Espressif Systems — Module SoM tích hợp</div>
+                        </div>
+                    </div>
+                    <div class="ds-body">
+                        Module tích hợp ESP32-S3 + Flash + PSRAM + Antenna PCB. Datasheet chứa pinout chi tiết,
+                        recommended layout, schematic design guide, và RF specifications.
+                    </div>
+                    <div class="ds-specs">
+                        <div class="spec-item">
+                            <div class="spec-label">Flash</div>
+                            <div class="spec-value">4/8/16 MB (QSPI)</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">PSRAM</div>
+                            <div class="spec-value">2/8 MB (OSPI)</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">GPIO</div>
+                            <div class="spec-value">Lên tới 36 pin</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Kích thước</div>
+                            <div class="spec-value">18×25.5×3.1 mm</div>
+                        </div>
+                    </div>
+                    <div class="ds-links">
+                        <a href="https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf"
+                            target="_blank">📄 Module Datasheet</a>
+                        <a href="https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html"
+                            target="_blank">📐 DevKitC Guide</a>
+                    </div>
+                </div>
+
+                <!-- OV2640 Camera -->
+                <div class="ds-card">
+                    <div class="ds-header">
+                        <div class="ds-icon cyan">📷</div>
+                        <div>
+                            <h3>OV2640 Camera Sensor</h3>
+                            <div class="ds-sub">OmniVision — Cảm biến ảnh CMOS 2MP</div>
+                        </div>
+                    </div>
+                    <div class="ds-body">
+                        Cảm biến ảnh 1/4" 2MP trên công nghệ OmniPixel2™. Tích hợp bộ mã hóa JPEG trong chip, hỗ trợ đa
+                        dạng format output (Raw, YUV, RGB). Cấu hình qua giao thức SCCB.
+                    </div>
+                    <div class="ds-specs">
+                        <div class="spec-item">
+                            <div class="spec-label">Độ phân giải</div>
+                            <div class="spec-value">1600×1200 (UXGA)</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">FPS</div>
+                            <div class="spec-value">15fps@UXGA, 30fps@SVGA</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Output</div>
+                            <div class="spec-value">JPEG/YUV422/RGB565</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Nguồn</div>
+                            <div class="spec-value">AVDD 2.8V, DVDD 1.3V</div>
+                        </div>
+                    </div>
+                    <div class="ds-links">
+                        <a href="https://www.uctronics.com/download/cam_module/OV2640DS.pdf" target="_blank">📄
+                            Datasheet (PDF)</a>
+                        <a href="https://github.com/espressif/esp32-camera" target="_blank">💻 ESP32-Camera Driver</a>
+                    </div>
+                </div>
+
+                <!-- AMS1117-3.3 LDO -->
+                <div class="ds-card">
+                    <div class="ds-header">
+                        <div class="ds-icon orange">⚡</div>
+                        <div>
+                            <h3>AMS1117-3.3 LDO Regulator</h3>
+                            <div class="ds-sub">Advanced Monolithic Systems — Ổn áp 3.3V</div>
+                        </div>
+                    </div>
+                    <div class="ds-body">
+                        LDO tuyến tính ổn áp 3.3V/1A cho MCU và IO camera. Dropout thấp (~1.1V), tích hợp bảo vệ quá
+                        dòng và quá nhiệt. Package SOT-223 dễ hàn.
+                    </div>
+                    <div class="ds-specs">
+                        <div class="spec-item">
+                            <div class="spec-label">Vout</div>
+                            <div class="spec-value">3.3V ± 1.5%</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Iout max</div>
+                            <div class="spec-value">1A</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Vin</div>
+                            <div class="spec-value">4.75V – 15V</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Dropout</div>
+                            <div class="spec-value">~1.1V @ 1A</div>
+                        </div>
+                    </div>
+                    <div class="ds-links">
+                        <a href="http://www.advanced-monolithic.com/pdf/ds1117.pdf" target="_blank">📄 Datasheet
+                            (PDF)</a>
+                    </div>
+                </div>
+
+                <!-- ESP-IDF Framework -->
+                <div class="ds-card">
+                    <div class="ds-header">
+                        <div class="ds-icon green">💻</div>
+                        <div>
+                            <h3>ESP-IDF Framework & Camera Driver</h3>
+                            <div class="ds-sub">Espressif — SDK phát triển firmware</div>
+                        </div>
+                    </div>
+                    <div class="ds-body">
+                        Framework chính thức để lập trình ESP32-S3; bao gồm FreeRTOS, WiFi stack, driver LCD_CAM, HTTP
+                        server, SPIFFS filesystem. Thư viện esp32-camera hỗ trợ OV2640 out-of-the-box.
+                    </div>
+                    <div class="ds-specs">
+                        <div class="spec-item">
+                            <div class="spec-label">Ngôn ngữ</div>
+                            <div class="spec-value">C / C++</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">RTOS</div>
+                            <div class="spec-value">FreeRTOS</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Build system</div>
+                            <div class="spec-value">CMake + Ninja</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">IDE hỗ trợ</div>
+                            <div class="spec-value">VS Code + ESP ext.</div>
+                        </div>
+                    </div>
+                    <div class="ds-links">
+                        <a href="https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/get-started/"
+                            target="_blank">🚀 Get Started</a>
+                        <a href="https://github.com/espressif/esp32-camera" target="_blank">📷 esp32-camera</a>
+                        <a href="https://github.com/espressif/esp-idf" target="_blank">📁 ESP-IDF GitHub</a>
+                    </div>
+                </div>
+
+                <!-- Reference Design -->
+                <div class="ds-card">
+                    <div class="ds-header">
+                        <div class="ds-icon purple">📐</div>
+                        <div>
+                            <h3>Thiết kế tham khảo (Reference)</h3>
+                            <div class="ds-sub">Schematics & PCB Layout mẫu</div>
+                        </div>
+                    </div>
+                    <div class="ds-body">
+                        Các bo mạch tham khảo có sẵn schematic + layout từ Espressif (DevKitC-1) và Freenove
+                        (ESP32-S3-WROOM CAM Board). Rất hữu ích khi thiết kế PCB cho đồ án.
+                    </div>
+                    <div class="ds-specs">
+                        <div class="spec-item">
+                            <div class="spec-label">DevKitC-1</div>
+                            <div class="spec-value">Espressif Official</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Freenove CAM</div>
+                            <div class="spec-value">ESP32-S3 + OV2640</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">KiCad Symbol</div>
+                            <div class="spec-value">Có trên SnapEDA</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">PCB layers</div>
+                            <div class="spec-value">2-layer đủ dùng</div>
+                        </div>
+                    </div>
+                    <div class="ds-links">
+                        <a href="https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html"
+                            target="_blank">📐 DevKitC-1 Schematic</a>
+                        <a href="https://github.com/Freenove/Freenove_ESP32_S3_WROOM_Board" target="_blank">📁 Freenove
+                            Board</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>📘 Đồ án Thiết kế 1 — Điện tử Viễn thông — Đại học Bách khoa Hà Nội (HUST)</p>
+            <p style="margin-top: 6px;">Hệ thống nhận diện vật thể nhúng trên ESP32-S3 + OV2640 | Ngày tạo: 25/02/2026
+            </p>
+        </div>
+    </div>
+
+    <!-- Tooltip element -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Tooltip functionality
+        const tooltip = document.getElementById('tooltip');
+        const blocks = document.querySelectorAll('.block[data-tooltip]');
+
+        blocks.forEach(block => {
+            block.addEventListener('mouseenter', (e) => {
+                tooltip.textContent = block.dataset.tooltip;
+                tooltip.classList.add('show');
+            });
+
+            block.addEventListener('mousemove', (e) => {
+                const x = e.clientX + 16;
+                const y = e.clientY + 16;
+                const maxX = window.innerWidth - tooltip.offsetWidth - 20;
+                const maxY = window.innerHeight - tooltip.offsetHeight - 20;
+                tooltip.style.left = Math.min(x, maxX) + 'px';
+                tooltip.style.top = Math.min(y, maxY) + 'px';
+            });
+
+            block.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+            });
+        });
+
+        // Subtle animation on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.block, .ds-card, .pipeline-step').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+
+</html>
